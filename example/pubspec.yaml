@@ -1,6 +1,6 @@
 name: table_example
-description: "A new Flutter project."
-publish_to: 'none' 
+description: 'A new Flutter project.'
+publish_to: 'none'
 
 version: 1.0.0+1
 
@@ -12,7 +12,7 @@ dependencies:
   english_words: ^4.0.0
   flutter:
     sdk: flutter
-  flex_table:
+  flexible_table:
     path: ../
 
 dev_dependencies:

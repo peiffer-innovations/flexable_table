@@ -1,7 +1,7 @@
 import 'dart:isolate';
 
 import 'package:csv/csv.dart';
-import 'package:flex_table/flex_table.dart';
+import 'package:flexible_table/flexible_table.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

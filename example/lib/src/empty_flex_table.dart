@@ -1,4 +1,4 @@
-import 'package:flex_table/flex_table.dart';
+import 'package:flexible_table/flexible_table.dart';
 import 'package:flutter/material.dart';
 
 class EmptyFlexTable extends StatefulWidget {
