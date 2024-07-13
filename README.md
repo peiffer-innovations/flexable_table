@@ -1,3 +1,23 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [flex_table](#flex_table)
+  - [Introduction](#introduction)
+  - [Components](#components)
+    - [FlexTable](#flextable)
+      - [Setting Column Sizes](#setting-column-sizes)
+    - [EmptyDataBuilder](#emptydatabuilder)
+    - [FlexCellBuilder](#flexcellbuilder)
+      - [FlexDataCellBuilder](#flexdatacellbuilder)
+        - [FlexStripeCellBuilder](#flexstripecellbuilder)
+      - [FlexHeaderCellBuilder](#flexheadercellbuilder)
+        - [FlexFilterHeaderCellBuilder](#flexfilterheadercellbuilder)
+        - [FlexSortHeaderCellBuilder](#flexsortheadercellbuilder)
+    - [FlexTableColumnSize](#flextablecolumnsize)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # flex_table
 
 ## Introduction
