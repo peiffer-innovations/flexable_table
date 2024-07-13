@@ -122,7 +122,6 @@ class MyTableWidgetState extends <MyTableWidget> {
 **Example Image**
 ![InitialColumnSizes](images/InitialColumnSizes.gif)
 
-
 ---
 
 ### EmptyDataBuilder
