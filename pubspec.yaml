@@ -1,6 +1,5 @@
 name: flex_table
-description: 'A new Flutter project.'
-publish_to: 'none'
+description: 'A table with flexible sized colums and an effectively unlimited number of rows that retains performance.'
 
 version: 1.0.0
 
