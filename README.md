@@ -329,8 +329,3 @@ class MyTableWidgetState extends <MyTableWidget> {
 **Example Image**
 ![FlexSortHeaderCellBuilder](images/FlexSortHeaderCellBuilder.gif)
 
----
-
-### FlexTableColumnSize
-
-Simple data class that holds the size to either set to a column or the current size of the column.
