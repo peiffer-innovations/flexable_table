@@ -15,7 +15,6 @@
     - [FlexHeaderCellBuilder](#flexheadercellbuilder)
       - [FlexFilterHeaderCellBuilder](#flexfilterheadercellbuilder)
       - [FlexSortHeaderCellBuilder](#flexsortheadercellbuilder)
-  - [FlexTableColumnSize](#flextablecolumnsize)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
