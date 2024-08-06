@@ -1,22 +1,21 @@
-name: flexible_table
+name: 'flexible_table'
 description: 'A table with flexible sized colums and an effectively unlimited number of rows that retains performance.'
-repository: https://github.com/peiffer-innovations/flexible_table
+repository: 'https://github.com/peiffer-innovations/flexible_table'
+version: '1.0.0+1'
 
-version: 1.0.0
-
-environment:
+environment: 
   sdk: '>=3.4.3 <4.0.0'
 
-dependencies:
-  flutter:
-    sdk: flutter
-  multi_split_view: ^3.2.2
-  popover: ^0.3.0+1
+dependencies: 
+  flutter: 
+    sdk: 'flutter'
+  multi_split_view: '^3.4.0'
+  popover: '^0.3.0+1'
 
-dev_dependencies:
-  flutter_lints: ^4.0.0
-  flutter_test:
-    sdk: flutter
+dev_dependencies: 
+  flutter_lints: '^4.0.0'
+  flutter_test: 
+    sdk: 'flutter'
 
-flutter:
+flutter: 
   uses-material-design: true
