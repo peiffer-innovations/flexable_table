@@ -5,6 +5,7 @@ import 'package:table_example/src/dynamic_flex_table.dart';
 import 'package:table_example/src/empty_flex_table.dart';
 import 'package:table_example/src/filtered_flex_table.dart';
 import 'package:table_example/src/initial_flex_table_sizes.dart';
+import 'package:table_example/src/mixed_widgets_flex_table.dart';
 import 'package:table_example/src/not_resizable_flex_table.dart';
 
 void main() async {
@@ -122,6 +123,14 @@ class MyHomePage extends StatelessWidget {
               ),
             ),
             title: const Text('Inital Column Sizes'),
+          ),
+          ListTile(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const MixedWidgetsFlexTable(),
+              ),
+            ),
+            title: const Text('Mixed Widgets'),
           ),
           ListTile(
             onTap: () => Navigator.of(context).push(

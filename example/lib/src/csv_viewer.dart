@@ -38,7 +38,9 @@ class _CsvViewerState extends State<CsvViewer> {
     tristate: widget.tristate,
   );
 
-  List<String>? _headers;
+  final List<int> _selectedRows = [];
+
+  List<FlexTableCell>? _headers;
   List<List<String>>? _rows;
 
   @override
@@ -54,7 +56,10 @@ class _CsvViewerState extends State<CsvViewer> {
 
     final allRows = kIsWeb ? await _loadCsv(data) : await _spawnThread(data);
 
-    _headers = allRows.first.take(maxColumns).toList();
+    _headers = allRows.first
+        .take(maxColumns)
+        .map((c) => FlexTableCell(value: c))
+        .toList();
     _rows = allRows.skip(1).map((e) => e.take(maxColumns).toList()).toList();
 
     if (mounted) {
@@ -73,7 +78,11 @@ class _CsvViewerState extends State<CsvViewer> {
   @override
   Widget build(BuildContext context) {
     final headers = _headers;
-    final rows = _rows;
+    final rows = _rows?.map(
+      (r) => List<FlexTableCell>.from(
+        [for (var c in r) FlexTableCell(value: c)],
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -93,11 +102,27 @@ class _CsvViewerState extends State<CsvViewer> {
                     )
                   : widget.filterable
                       ? FlexFilterHeaderCellBuilder(
-                          controller: _filterController)
+                          controller: _filterController,
+                        )
                       : const FlexHeaderCellBuilder(),
               initialData: [
                 for (var r in rows) FlexTableRow(columns: r),
               ],
+              onRowSelected: (index) {
+                if (_selectedRows.contains(index)) {
+                  _selectedRows.remove(index);
+                } else {
+                  _selectedRows.add(index);
+                }
+
+                setState(() {});
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Row: $index'),
+                  ),
+                );
+              },
+              selectedRows: _selectedRows,
             ),
     );
   }

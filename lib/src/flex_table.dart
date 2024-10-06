@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:flexible_table/flexible_table.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 import 'package:popover/popover.dart';
+import 'package:provider/provider.dart';
 
 /// A type definition for a function that can perform a filter.  This function
 /// should return [true] when a value should be filtered (removed) from the
 /// result set and [false] if the value should remain in the result set.
-typedef FlexTableFilterer<F> = bool Function(F filter, String value);
+typedef FlexTableFilterer = bool Function(String filter, String value);
 
 /// A type definition for a function that can perform value sorting.  The
 /// returned value must be 0 if the values are considered equal, <0 if the
@@ -36,25 +37,27 @@ abstract class FlexCellBuilder {
     this.padding = const EdgeInsets.symmetric(
       horizontal: 8.0,
     ),
+    this.selectedColor,
   });
 
   final Alignment alignment;
   final Color? color;
   final int maxLines;
   final EdgeInsetsGeometry padding;
+  final Color? selectedColor;
 
   /// Builds the [Widget] for the cell located at [columnIndex] and [rowIndex].
   /// The passed in [child] should be wrapped by whatever widgets this builder
   /// provides.
   ///
   /// For headers, the [rowIndex] will always be -1.
-  Widget build(
-    BuildContext context,
-    int columnIndex,
-    int rowIndex,
-    Widget child,
-  ) {
-    final color = this.color;
+  Widget build({
+    required Widget child,
+    required BuildContext context,
+    required int columnIndex,
+    required int rowIndex,
+    required bool selected,
+  }) {
     Widget result = Align(
       alignment: alignment,
       child: Padding(
@@ -63,8 +66,10 @@ abstract class FlexCellBuilder {
       ),
     );
 
+    final color = selected ? (selectedColor ?? Colors.black12) : this.color;
+
     if (color != null) {
-      result = ColoredBox(
+      result = Material(
         color: color,
         child: result,
       );
@@ -87,6 +92,7 @@ class FlexDataCellBuilder extends FlexCellBuilder {
     super.color,
     super.maxLines,
     super.padding,
+    super.selectedColor,
   });
 }
 
@@ -243,7 +249,7 @@ class FlexFilterController<F> {
   final StreamController<void> _controller = StreamController<void>.broadcast();
 
   int? _filterIndex;
-  F? _filterValue;
+  String? _filterValue;
 
   /// The current column index where a filter is being applied.  Will be if no
   /// filter is being applied.
@@ -251,7 +257,7 @@ class FlexFilterController<F> {
 
   /// The current value of the filter being applied.  Will be null if no filter
   /// is being applied.
-  F? get filterValue => _filterValue;
+  String? get filterValue => _filterValue;
 
   /// Returns the [stream] that can be listened to.  The stream will have an
   /// event applied whenever the filter is changed.
@@ -266,7 +272,7 @@ class FlexFilterController<F> {
   /// index of the column to apply the filter to and the [value] is the value to
   /// use when applying the filter.  Set both to null to remove the filter and
   /// cause the table to show all the rows.
-  void update(int? index, F? value) {
+  void update(int? index, String? value) {
     _filterIndex = index;
     _filterValue = value;
 
@@ -302,12 +308,13 @@ class FlexFilterHeaderCellBuilder extends FlexHeaderCellBuilder {
   final Icon icon;
 
   @override
-  Widget build(
-    BuildContext context,
-    int columnIndex,
-    int rowIndex,
-    Widget child,
-  ) =>
+  Widget build({
+    required Widget child,
+    required BuildContext context,
+    required int columnIndex,
+    required int rowIndex,
+    required bool selected,
+  }) =>
       Material(
         color: super.color,
         child: _FlexFilterHeaderCell(
@@ -315,7 +322,13 @@ class FlexFilterHeaderCellBuilder extends FlexHeaderCellBuilder {
           controller: controller,
           icon: icon,
           index: columnIndex,
-          child: super.build(context, columnIndex, rowIndex, child),
+          child: super.build(
+            context: context,
+            columnIndex: columnIndex,
+            rowIndex: rowIndex,
+            selected: selected,
+            child: child,
+          ),
         ),
       );
 }
@@ -418,12 +431,13 @@ class FlexSortHeaderCellBuilder extends FlexHeaderCellBuilder {
   final Icon descendingIcon;
 
   @override
-  Widget build(
-    BuildContext context,
-    int columnIndex,
-    int rowIndex,
-    Widget child,
-  ) =>
+  Widget build({
+    required Widget child,
+    required BuildContext context,
+    required int columnIndex,
+    required int rowIndex,
+    required bool selected,
+  }) =>
       Material(
         color: super.color,
         child: _FlexSortHeaderCell(
@@ -432,7 +446,13 @@ class FlexSortHeaderCellBuilder extends FlexHeaderCellBuilder {
           controller: controller,
           descendingIcon: descendingIcon,
           index: columnIndex,
-          child: super.build(context, columnIndex, rowIndex, child),
+          child: super.build(
+            child: child,
+            context: context,
+            columnIndex: columnIndex,
+            rowIndex: rowIndex,
+            selected: selected,
+          ),
         ),
       );
 }
@@ -441,25 +461,33 @@ class FlexSortHeaderCellBuilder extends FlexHeaderCellBuilder {
 class FlexStripeCellBuilder extends FlexDataCellBuilder {
   const FlexStripeCellBuilder({
     super.alignment,
-    this.even = Colors.white,
+    this.even = Colors.transparent,
     super.maxLines,
     this.odd = const Color(0x30FFEB3B),
     super.padding,
+    super.selectedColor,
   });
 
   final Color even;
   final Color odd;
 
   @override
-  Widget build(
-    BuildContext context,
-    int columnIndex,
-    int rowIndex,
-    Widget child,
-  ) =>
-      ColoredBox(
+  Widget build({
+    required Widget child,
+    required BuildContext context,
+    required int columnIndex,
+    required int rowIndex,
+    required bool selected,
+  }) =>
+      Material(
         color: rowIndex.isEven ? even : odd,
-        child: super.build(context, columnIndex, rowIndex, child),
+        child: super.build(
+          child: child,
+          context: context,
+          columnIndex: columnIndex,
+          rowIndex: rowIndex,
+          selected: selected,
+        ),
       );
 }
 
@@ -513,8 +541,10 @@ class FlexTable extends StatefulWidget {
     this.initialColumnSizes,
     this.initialData = const [],
     super.key,
+    this.onRowSelected,
     this.pushDividers = true,
     this.resizable = true,
+    this.selectedRows = const [],
   });
 
   /// The controller to provide two way communication between the table and
@@ -534,7 +564,7 @@ class FlexTable extends StatefulWidget {
   final WidgetBuilder? emptyDataBuilder;
 
   /// List of column headers.
-  final List<String> headers;
+  final List<FlexTableCell> headers;
 
   /// Builder to build the header cells.
   final FlexHeaderCellBuilder headerBuilder;
@@ -556,11 +586,16 @@ class FlexTable extends StatefulWidget {
   /// build.
   final List<FlexTableRow> initialData;
 
+  final ValueChanged<int>? onRowSelected;
+
   /// Defines whether one column can push across the width of another or not.
   final bool pushDividers;
 
   /// Defines whether the columns are resizable or not.
   final bool resizable;
+
+  /// Indicies of the rows that are selected within the table.
+  final List<int> selectedRows;
 
   @override
   State createState() => _FlexTableState();
@@ -605,7 +640,7 @@ class FlexTableColumnSize {
 }
 
 /// Controller to provide programmatic control over a [FlexTable].
-class FlexTableController<F> {
+class FlexTableController {
   /// Controller for a [FlexTable].
   ///
   /// The optional [filterFn] function is used when filtering the data is
@@ -629,9 +664,10 @@ class FlexTableController<F> {
   /// To prevent memory leaks, be sure to [dispose] this when it is no longer
   /// needed.
   FlexTableController({
-    FlexTableFilterer<F>? filterFn,
+    FlexTableFilterer? filterFn,
     FlexTableSorter? sortFn,
-  })  : _filterFn = filterFn ?? ((F filter, String value) => filter != value),
+  })  : _filterFn =
+            filterFn ?? ((String filter, String value) => filter != value),
         _sortFn = sortFn ??
             ((bool ascending, String a, String b) {
               final aValue = a.toLowerCase();
@@ -647,14 +683,14 @@ class FlexTableController<F> {
   final StreamController<void> _rowController =
       StreamController<void>.broadcast();
 
-  final FlexTableFilterer<F> _filterFn;
+  final FlexTableFilterer _filterFn;
   final FlexTableSorter _sortFn;
 
   List<FlexTableRow> _allRows = [];
   List<Area> _areas = [];
   bool _ascending = false;
   int? _filterIndex;
-  F? _filterValue;
+  String? _filterValue;
   List<FlexTableRow> _rows = [];
   int? _sortIndex;
 
@@ -720,7 +756,7 @@ class FlexTableController<F> {
 
   /// Sets the current filter and applies it to the [FlexTable].  If either the
   /// [index] or [value] is set to null, this will disable the sorting.
-  void filter(int? index, F? value) {
+  void filter(int? index, String? value) {
     _filterIndex = index;
     _filterValue = value;
 
@@ -791,15 +827,15 @@ class FlexTableController<F> {
     final filterValue = _filterValue;
     if (filterIndex != null && filterValue != null) {
       filtered.removeWhere(
-          (row) => _filterFn(filterValue, row.columns[filterIndex]));
+          (row) => _filterFn(filterValue, row.columns[filterIndex].value));
     }
 
     if (sortIndex != null) {
       filtered.sort(
         (a, b) => _sortFn(
           _ascending,
-          a.columns[sortIndex],
-          b.columns[sortIndex],
+          a.columns[sortIndex].value.toLowerCase(),
+          b.columns[sortIndex].value.toLowerCase(),
         ),
       );
     }
@@ -807,43 +843,6 @@ class FlexTableController<F> {
     _rows = List.unmodifiable(filtered);
     _rowController.add(null);
   }
-}
-
-/// Defines a single row of data within a [FlexTable].
-@immutable
-class FlexTableRow {
-  /// Creates the row with the data for the [columns] of the row.  The optional
-  /// [key] can be provided to give hints to the [FlexTable] for rebuilds and
-  /// the default is simply a [UniqueKey] to that every row has a unique [key].
-  FlexTableRow({
-    required List<String> columns,
-    Key? key,
-  })  : columns = List.unmodifiable(List<String>.from(columns)),
-        key = key ?? UniqueKey(),
-        _hashCode = columns.join('|').hashCode;
-
-  /// The columns for the row.  This will be detached from the list passed to
-  /// the constructor and will always be unmodifiable.
-  final List<String> columns;
-
-  /// The key to use for the widget that ultimately builds the row.
-  final Key key;
-
-  final int _hashCode;
-
-  /// Will return if any of the following are true:
-  ///   * [this] is identical to [other]
-  ///   * [key] equals [other.key]
-  ///   * [columns] equals [other.columns]
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is FlexTableRow &&
-          (key == other.key || listEquals(columns, other.columns)));
-
-  /// The consistent [hashCode] for the row.
-  @override
-  int get hashCode => _hashCode;
 }
 
 class _FlexFilterHeaderCell extends StatefulWidget {
@@ -920,7 +919,7 @@ class _FlexFilterHeaderCellState extends State<_FlexFilterHeaderCell> {
         final values = <String>{
           ...widget.controller.controller._allRows.map(
             (row) {
-              final value = row.columns[widget.index];
+              final value = row.columns[widget.index].value;
               if (longestWord.length < value.length) {
                 longestWord = value;
               }
@@ -1137,7 +1136,7 @@ class _FlexTableHeader extends StatefulWidget {
   });
 
   final FlexCellBuilder builder;
-  final List<String> columns;
+  final List<FlexTableCell> columns;
   final FlexTableController controller;
   final FlexHeaderDividerBuilder dividerBuilder;
   final List<FlexTableColumnSize>? initialColumnSizes;
@@ -1165,14 +1164,11 @@ class _FlexTableHeaderState extends State<_FlexTableHeader> {
       multiSplitViewController.addArea(
         Area(
           builder: (context, area) => widget.builder.build(
-            context,
-            i,
-            -1,
-            Text(
-              column,
-              maxLines: widget.builder.maxLines,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: column,
+            context: context,
+            columnIndex: i,
+            rowIndex: -1,
+            selected: false,
           ),
           flex: size?.flex,
           max: size?.maxFlex,
@@ -1210,10 +1206,11 @@ class _FlexTableHeaderState extends State<_FlexTableHeader> {
             ? widget.dividerBuilder.build
             : (axis, index, resizable, dragging, highlighted, themeData) =>
                 widget.builder.build(
-                  context,
-                  index,
-                  -1,
-                  const SizedBox(),
+                  child: const SizedBox(),
+                  context: context,
+                  columnIndex: index,
+                  rowIndex: -1,
+                  selected: false,
                 ),
         pushDividers: widget.pushDividers,
         resizable: widget.resizable,
@@ -1228,6 +1225,7 @@ class _FlexTableRow extends StatefulWidget {
     required this.controller,
     required this.data,
     required this.index,
+    required this.selected,
     required this.style,
   }) : super(key: data.key);
 
@@ -1235,6 +1233,7 @@ class _FlexTableRow extends StatefulWidget {
   final FlexTableController controller;
   final FlexTableRow data;
   final int index;
+  final bool selected;
   final TextStyle? style;
 
   @override
@@ -1257,20 +1256,22 @@ class _FlexTableRowState extends State<_FlexTableRow> {
     subscriptions.add(
       widget.controller._columnController.stream.listen((areas) {
         final newAreas = <Area>[];
+        final style = widget.style;
         for (var i = 0; i < columns.length; i++) {
           final area = areas[i];
           final id = controller.getArea(i).id;
           newAreas.add(Area(
             builder: (context, area) => widget.builder.build(
-              context,
-              i,
-              widget.index,
-              Text(
-                columns[i],
-                maxLines: widget.builder.maxLines,
-                overflow: TextOverflow.ellipsis,
-                style: widget.style,
-              ),
+              child: style == null
+                  ? columns[i]
+                  : DefaultTextStyle(
+                      style: style,
+                      child: columns[i],
+                    ),
+              context: context,
+              columnIndex: i,
+              rowIndex: widget.index,
+              selected: widget.selected,
             ),
             flex: area.flex,
             id: id,
@@ -1295,23 +1296,24 @@ class _FlexTableRowState extends State<_FlexTableRow> {
     super.dispose();
   }
 
-  Area buildArea(Area header, int index) => Area(
-        builder: (context, area) => widget.builder.build(
-          context,
-          index,
-          widget.index,
-          Text(
-            widget.data.columns[index],
-            maxLines: widget.builder.maxLines,
-            overflow: TextOverflow.ellipsis,
-            style: widget.style,
-          ),
-        ),
-        flex: header.flex,
-        max: header.max,
-        min: header.min,
-        size: header.size,
-      );
+  Area buildArea(Area header, int index) {
+    final style = widget.style;
+    return Area(
+      builder: (context, area) => widget.builder.build(
+        context: context,
+        columnIndex: index,
+        rowIndex: widget.index,
+        selected: widget.selected,
+        child: style == null
+            ? widget.data.columns[index]
+            : DefaultTextStyle(style: style, child: widget.data.columns[index]),
+      ),
+      flex: header.flex,
+      max: header.max,
+      min: header.min,
+      size: header.size,
+    );
+  }
 
   @override
   Widget build(BuildContext context) => MultiSplitView(
@@ -1319,10 +1321,11 @@ class _FlexTableRowState extends State<_FlexTableRow> {
         dividerBuilder:
             (axis, index, resizable, dragging, highlighted, themeData) =>
                 widget.builder.build(
-          context,
-          index,
-          widget.index,
-          const SizedBox(),
+          child: const SizedBox(),
+          context: context,
+          columnIndex: index,
+          rowIndex: widget.index,
+          selected: widget.selected,
         ),
         resizable: false,
       );
@@ -1352,42 +1355,59 @@ class _FlexTableState extends State<FlexTable> {
   Widget build(BuildContext context) {
     final emptyDataBuilder =
         widget.controller._rows.isNotEmpty ? null : widget.emptyDataBuilder;
-    return Column(
-      children: [
-        SizedBox(
-          height: widget.headerHeight,
-          child: _FlexTableHeader(
-            builder: widget.headerBuilder,
-            columns: widget.headers,
-            controller: widget.controller,
-            dividerBuilder: widget.headerDividerBuilder,
-            initialColumnSizes: widget.initialColumnSizes,
-            pushDividers: widget.pushDividers,
-            resizable: widget.resizable,
-            style: widget.headerStyle,
-          ),
-        ),
-        Expanded(
-          child: StreamBuilder(
-            stream: widget.controller._rowController.stream,
-            builder: (context, snapshot) => emptyDataBuilder != null
-                ? emptyDataBuilder(context)
-                : ListView.builder(
-                    itemBuilder: (context, index) => SizedBox(
-                      height: widget.dataHeight,
-                      child: _FlexTableRow(
-                        builder: widget.dataBuilder,
-                        controller: widget.controller,
-                        data: widget.controller._rows[index],
-                        index: index,
-                        style: widget.dataStyle,
-                      ),
-                    ),
-                    itemCount: widget.controller._rows.length,
-                  ),
-          ),
-        ),
+    final onRowSelected = widget.onRowSelected;
+    return MultiProvider(
+      providers: [
+        Provider.value(value: widget.controller),
+        Provider.value(value: widget.dataBuilder),
+        Provider.value(value: widget.headerBuilder),
+        Provider.value(value: widget.headerDividerBuilder),
       ],
+      child: Column(
+        children: [
+          SizedBox(
+            height: widget.headerHeight,
+            child: _FlexTableHeader(
+              builder: widget.headerBuilder,
+              columns: widget.headers,
+              controller: widget.controller,
+              dividerBuilder: widget.headerDividerBuilder,
+              initialColumnSizes: widget.initialColumnSizes,
+              pushDividers: widget.pushDividers,
+              resizable: widget.resizable,
+              style: widget.headerStyle,
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder(
+              stream: widget.controller._rowController.stream,
+              builder: (context, snapshot) => emptyDataBuilder != null
+                  ? emptyDataBuilder(context)
+                  : ListView.builder(
+                      itemBuilder: (context, index) => SizedBox(
+                        height: widget.dataHeight,
+                        child: Material(
+                          child: InkWell(
+                            onTap: onRowSelected == null
+                                ? null
+                                : () => onRowSelected(index),
+                            child: _FlexTableRow(
+                              builder: widget.dataBuilder,
+                              controller: widget.controller,
+                              data: widget.controller._rows[index],
+                              index: index,
+                              selected: widget.selectedRows.contains(index),
+                              style: widget.dataStyle,
+                            ),
+                          ),
+                        ),
+                      ),
+                      itemCount: widget.controller._rows.length,
+                    ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

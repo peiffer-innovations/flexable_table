@@ -27,13 +27,13 @@ class _InitialFlexTableSizesState extends State<InitialFlexTableSizes> {
   late final FlexSortController _sortController =
       FlexSortController(controller: _controller);
 
-  final List<String> _headers = [
-    'Small',
-    'Medium',
-    'Large',
-    'Has Minimum',
-    'Has Maximum',
-    'Sized',
+  final List<FlexTableCell> _headers = [
+    const FlexTableCell(value: 'Small'),
+    const FlexTableCell(value: 'Medium'),
+    const FlexTableCell(value: 'Large'),
+    const FlexTableCell(value: 'Has Minimum'),
+    const FlexTableCell(value: 'Has Maximum'),
+    const FlexTableCell(value: 'Sized'),
   ];
   final List<FlexTableColumnSize> _sizes = [
     FlexTableColumnSize(flex: 0.5),
@@ -50,12 +50,12 @@ class _InitialFlexTableSizesState extends State<InitialFlexTableSizes> {
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      final columns = <String>[];
+      final columns = <FlexTableCell>[];
       final random = Random();
 
       for (var i = 0; i < _headers.length; i++) {
         final word = nouns[random.nextInt(nouns.length)];
-        columns.add(word);
+        columns.add(FlexTableCell(value: word));
       }
 
       _controller.addRow(FlexTableRow(columns: columns));

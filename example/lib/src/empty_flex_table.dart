@@ -18,8 +18,8 @@ class _EmptyFlexTableState extends State<EmptyFlexTable> {
 
   final FlexTableController _controller = FlexTableController();
 
-  final List<String> _headers = [
-    for (var i = 1; i <= kColumns; i++) 'Empty #$i'
+  final List<FlexTableCell> _headers = [
+    for (var i = 1; i <= kColumns; i++) FlexTableCell(value: 'Empty #$i')
   ];
 
   @override

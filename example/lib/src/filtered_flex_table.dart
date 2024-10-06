@@ -24,8 +24,8 @@ class _FilteredFlexTableState extends State<FilteredFlexTable> {
   late final FlexFilterController _filterController =
       FlexFilterController(controller: _controller);
 
-  final List<String> _headers = [
-    for (var i = 1; i <= kColumns; i++) 'Random #$i'
+  final List<FlexTableCell> _headers = [
+    for (var i = 1; i <= kColumns; i++) FlexTableCell(value: 'Random #$i')
   ];
 
   late final Timer _timer;
@@ -34,12 +34,12 @@ class _FilteredFlexTableState extends State<FilteredFlexTable> {
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      final columns = <String>[];
+      final columns = <FlexTableCell>[];
       final random = Random();
 
       for (var i = 0; i < _headers.length; i++) {
         final word = nouns[random.nextInt(nouns.length)];
-        columns.add(word);
+        columns.add(FlexTableCell(value: word));
       }
 
       _controller.addRow(FlexTableRow(columns: columns));
