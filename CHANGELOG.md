@@ -1,3 +1,8 @@
+## [2.0.0+1] - October 29, 2024
+
+* Automated dependency updates
+
+
 ## [2.0.0] - October 6TH, 2024
 
 * Added ability to use widgets other than Text
